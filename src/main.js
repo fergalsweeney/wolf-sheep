@@ -782,11 +782,29 @@ function gameLoop() {
     drawParticles();
     drawScoreEffects();
     
-    // Draw timer
+    // Draw timer and score
+    // Create a semi-transparent background for the UI
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(canvas.width/2 - 150, 10, 300, 40);
     ctx.fillStyle = 'white';
     ctx.font = '24px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(`Time: ${gameState.gameTimer}`, canvas.width/2, 30);
+    
+    // Draw time on the left side
+    ctx.fillText(`Time: ${gameState.gameTimer}`, canvas.width/2 - 70, 38);
+    
+    // Draw a separator line
+    ctx.fillRect(canvas.width/2, 15, 2, 30);
+    
+    // Draw score on the right side
+    ctx.fillText(`Score: ${gameState.score}`, canvas.width/2 + 70, 38);
+    
+    // Draw current combo if active
+    if (gameState.combo > 1) {
+        ctx.fillStyle = '#ffff00'; // Yellow for combo
+        ctx.font = '18px Arial';
+        ctx.fillText(`Combo: ${gameState.combo}x`, canvas.width/2, 65);
+    }
     
     // Continue the game loop
     requestAnimationFrame(gameLoop);
