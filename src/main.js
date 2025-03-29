@@ -158,6 +158,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listeners for buttons
     document.getElementById('startButton').addEventListener('click', function() {
         console.log('Start button clicked');
+        // Make sure the game-over overlay is hidden even if startGame isn't called directly
+        document.getElementById('game-over').style.display = 'none';
         startGame();
     });
     
@@ -178,6 +180,7 @@ function startGame() {
     
     document.getElementById('startButton').style.display = 'none';
     document.getElementById('instructions').style.display = 'none';
+    document.getElementById('game-over').style.display = 'none'; // Hide game over overlay
     
     // Reset game state
     gameState.score = 0;
@@ -279,22 +282,8 @@ function startTimer() {
                 gameState.isGameOver = true;
                 clearInterval(timeInterval);
                 
-                // Draw game over screen
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 72px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('TIME UP!!!!', canvas.width/2, canvas.height/2);
-                ctx.font = 'bold 36px Arial';
-                ctx.fillText(`Final Score: ${gameState.score}`, canvas.width/2, canvas.height/2 + 80);
-                
-                // Show start button again
-                document.getElementById('startButton').style.display = 'block';
-                
-                // Stop background music
-                backgroundMusic.pause();
-                backgroundMusic.currentTime = 0;
+                // Use the game over overlay instead of drawing on canvas
+                endGame("TIME UP!!!!");
             }
         }
     }, 100);
@@ -966,18 +955,17 @@ function showLevelTransition() {
     console.log('Starting level transition');
     gameState.isTransitioning = true;
     
-    // Clear the screen for the transition
-    drawBackground();
+    // Get the level transition overlay elements
+    const levelTransition = document.getElementById('level-transition');
+    const roundText = document.getElementById('round-text');
+    const roundDescription = document.getElementById('round-description');
     
-    // Display transition message with the correct round number
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 72px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`ROUND ${gameState.level + 1}!`, canvas.width/2, canvas.height/2);
+    // Update the text content
+    roundText.textContent = `ROUND ${gameState.level + 1}!`;
+    roundDescription.textContent = `Watch out! Another poop has appeared!`;
     
-    // Add info about the additional poop
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText(`Watch out! Another poop has appeared!`, canvas.width/2, canvas.height/2 + 60);
+    // Show the transition overlay
+    levelTransition.style.display = 'flex';
     
     // Play wolf sound during transition to next level
     playSound(wolfSound);
@@ -985,6 +973,9 @@ function showLevelTransition() {
     // Wait for a moment before continuing
     setTimeout(() => {
         console.log(`Transition timeout completed, starting level ${gameState.level + 1}`);
+        
+        // Hide the transition overlay
+        levelTransition.style.display = 'none';
         
         // Move to next level
         gameState.level++;
@@ -1047,15 +1038,17 @@ function endGame(message) {
     gameState.isGameOver = true;
     clearInterval(timeInterval);
     
-    // Draw game over screen
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'white';
-    ctx.font = 'bold 72px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(message, canvas.width/2, canvas.height/2);
-    ctx.font = 'bold 36px Arial';
-    ctx.fillText(`Final Score: ${gameState.score}`, canvas.width/2, canvas.height/2 + 80);
+    // Get the game over overlay elements
+    const gameOverOverlay = document.getElementById('game-over');
+    const gameOverText = document.getElementById('game-over-text');
+    const finalScoreText = document.getElementById('final-score');
+    
+    // Update text content
+    gameOverText.textContent = message;
+    finalScoreText.textContent = `Final Score: ${gameState.score}`;
+    
+    // Show the game over overlay
+    gameOverOverlay.style.display = 'flex';
     
     // Show start button again
     document.getElementById('startButton').style.display = 'block';
