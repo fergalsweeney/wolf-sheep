@@ -1,4 +1,4 @@
-# Sheep Herder Game
+# Achill Sheep Wars
 
 A simple browser-based game where you play as a wolf trying to catch sheep while avoiding obstacles.
 
