@@ -174,3 +174,78 @@ canvas {
     margin-top: 20px;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
+
+/* Direction control buttons for touchscreen devices */
+#direction-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 150px;
+    height: 150px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.direction-btn {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 2px solid #333;
+    border-radius: 8px;
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation; /* Prevents browser handling of touch gestures */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.direction-btn:active {
+    background-color: rgba(76, 175, 80, 0.8);
+    color: white;
+}
+
+.up-btn {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.left-btn {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.right-btn {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.down-btn {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    #game-container {
+        width: 100%;
+        height: auto;
+        max-width: 800px;
+        max-height: 600px;
+        aspect-ratio: 4/3;
+    }
+    
+    canvas {
+        width: 100%;
+        height: 100%;
+    }
+    
+    #direction-controls {
+        width: 120px;
+        height: 120px;
+    }
+}

@@ -19,9 +19,19 @@
         <audio id="backgroundMusic" preload="auto" loop></audio>
         <audio id="biteSound" src="./assets/bite.ogg" preload="auto"></audio>
         <audio id="wolfSound" src="./assets/wolfisloose.ogg" preload="auto"></audio>
+        
+        <!-- Direction control buttons for touchscreen -->
+        <div id="direction-controls">
+            <button id="up-btn" class="direction-btn up-btn">↑</button>
+            <button id="left-btn" class="direction-btn left-btn">←</button>
+            <button id="right-btn" class="direction-btn right-btn">→</button>
+            <button id="down-btn" class="direction-btn down-btn">↓</button>
+        </div>
+        
         <div id="instructions" class="instructions-panel">
             <h3>How to Play</h3>
             <p>Use your mouse or touch to herd the sheep.</p>
+            <p>On mobile, use the direction buttons to move the wolf.</p>
             <p>Earn points for each sheep that reaches the pen.</p>
             <p>Don't let the timer run out!</p>
             <button id="closeInstructions">Got it!</button>

@@ -178,10 +178,92 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('instructions').style.display = 'none';
     });
     
+    // Add event listeners for direction buttons (touch controls)
+    setupDirectionalButtons();
+    
     // Enable audio unlocking
     document.addEventListener('click', enableAudio);
     document.addEventListener('keydown', enableAudio);
 });
+
+// Function to setup directional button controls
+function setupDirectionalButtons() {
+    // Up button
+    const upButton = document.getElementById('up-btn');
+    upButton.addEventListener('touchstart', function(e) {
+        e.preventDefault(); // Prevent default touch behavior
+        gameState.movement.up = true;
+    });
+    upButton.addEventListener('touchend', function() {
+        gameState.movement.up = false;
+    });
+    upButton.addEventListener('mousedown', function() {
+        gameState.movement.up = true;
+    });
+    upButton.addEventListener('mouseup', function() {
+        gameState.movement.up = false;
+    });
+    upButton.addEventListener('mouseleave', function() {
+        gameState.movement.up = false;
+    });
+    
+    // Down button
+    const downButton = document.getElementById('down-btn');
+    downButton.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        gameState.movement.down = true;
+    });
+    downButton.addEventListener('touchend', function() {
+        gameState.movement.down = false;
+    });
+    downButton.addEventListener('mousedown', function() {
+        gameState.movement.down = true;
+    });
+    downButton.addEventListener('mouseup', function() {
+        gameState.movement.down = false;
+    });
+    downButton.addEventListener('mouseleave', function() {
+        gameState.movement.down = false;
+    });
+    
+    // Left button
+    const leftButton = document.getElementById('left-btn');
+    leftButton.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        gameState.movement.left = true;
+    });
+    leftButton.addEventListener('touchend', function() {
+        gameState.movement.left = false;
+    });
+    leftButton.addEventListener('mousedown', function() {
+        gameState.movement.left = true;
+    });
+    leftButton.addEventListener('mouseup', function() {
+        gameState.movement.left = false;
+    });
+    leftButton.addEventListener('mouseleave', function() {
+        gameState.movement.left = false;
+    });
+    
+    // Right button
+    const rightButton = document.getElementById('right-btn');
+    rightButton.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        gameState.movement.right = true;
+    });
+    rightButton.addEventListener('touchend', function() {
+        gameState.movement.right = false;
+    });
+    rightButton.addEventListener('mousedown', function() {
+        gameState.movement.right = true;
+    });
+    rightButton.addEventListener('mouseup', function() {
+        gameState.movement.right = false;
+    });
+    rightButton.addEventListener('mouseleave', function() {
+        gameState.movement.right = false;
+    });
+}
 
 // Ensure audio is properly initialized when starting the game
 function startGame() {
