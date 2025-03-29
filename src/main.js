@@ -10,6 +10,15 @@ let startTime;
 let timeInterval;
 let sheepCaught = 0; // Track number of sheep caught in current round
 
+// Power-up constants
+const POWERUP_SIZE = 30;
+const POWERUP_TYPES = [
+    { name: 'speed', color: '#3498db', duration: 10000, chance: 0.6 },
+    { name: 'shield', color: '#e74c3c', duration: 8000, chance: 0.3 },
+    { name: 'magnet', color: '#9b59b6', duration: 5000, chance: 0.1 }
+];
+const POWERUP_SPAWN_CHANCE = 0.002; // Chance to spawn a power-up each frame
+
 // Set canvas size
 canvas.width = 800;
 canvas.height = 600;
@@ -119,7 +128,8 @@ const gameState = {
         down: false,
         left: false,
         right: false
-    }
+    },
+    powerUps: [] // Array to hold active power-ups
 };
 
 // Draw functions
@@ -641,6 +651,37 @@ function checkCollisionWithPoop(player, poop) {
         player.x + WOLF_SIZE > poop.x &&
         player.y < poop.y + poop.height &&
         player.y + WOLF_SIZE > poop.y) {
+        
+        // Check if player has shield power-up active
+        if (hasShield()) {
+            // Find the shield power-up and remove it
+            const shieldIndex = gameState.powerUps.findIndex(p => p.active && p.type === 'shield');
+            if (shieldIndex !== -1) {
+                // Create shield break effect
+                for (let i = 0; i < 20; i++) {
+                    gameState.particles.push(
+                        createParticle(player.x + WOLF_SIZE/2, player.y + WOLF_SIZE/2, '#e74c3c')
+                    );
+                }
+                
+                // Display shield protection message
+                gameState.scoreEffects.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    text: "Shield Protected!",
+                    life: 60,
+                    alpha: 1,
+                    color: '#e74c3c'
+                });
+                
+                // Remove the shield power-up
+                gameState.powerUps.splice(shieldIndex, 1);
+                
+                // Return false to indicate no harmful collision
+                return false;
+            }
+        }
+        
         return true;
     }
     return false;
@@ -698,13 +739,31 @@ function gameLoop() {
         gameState.combo = 0;
     }
     
+    // Chance to spawn a power-up
+    spawnPowerUp();
+    
     // Update sheep
     for (const sheep of gameState.sheep) {
         moveSheep(sheep);
     }
     
+    // Check for power-up collisions and update active power-ups
+    checkPowerUpCollisions();
+    
     // Check collisions between player and sheep
     gameState.sheep = gameState.sheep.filter(sheep => {
+        // If magnet power-up is active, attract nearby sheep
+        if (hasMagnet() && 
+            Math.hypot(sheep.x - gameState.player.x, sheep.y - gameState.player.y) < 150) {
+            // Calculate direction toward player
+            const dx = gameState.player.x - sheep.x;
+            const dy = gameState.player.y - sheep.y;
+            const dist = Math.hypot(dx, dy);
+            // Move sheep toward player with increased speed
+            sheep.x += (dx / dist) * sheep.speed * 1.5;
+            sheep.y += (dy / dist) * sheep.speed * 1.5;
+        }
+        
         if (checkCollision(gameState.player, sheep)) {
             // Update combo
             gameState.combo++;
@@ -772,6 +831,9 @@ function gameLoop() {
     drawHedges();
     drawPoops();
     
+    // Draw power-ups
+    drawPowerUps();
+    
     for (const sheep of gameState.sheep) {
         drawSheep(sheep);
     }
@@ -798,6 +860,34 @@ function gameLoop() {
     
     // Draw score on the right side
     ctx.fillText(`Score: ${gameState.score}`, canvas.width/2 + 70, 38);
+    
+    // Draw current level indicator in the top left corner
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(10, 10, 100, 40);
+    ctx.fillStyle = '#4CAF50'; // Green color for level
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`LEVEL ${gameState.level}`, 60, 35);
+    
+    // Draw sheep progress indicator in the top right corner
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(canvas.width - 110, 10, 100, 40);
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Sheep: ${sheepCaught}/${SHEEP_TO_LEVEL_UP}`, canvas.width - 60, 30);
+    
+    // Draw a small progress bar
+    const progressBarWidth = 80;
+    const progress = sheepCaught / SHEEP_TO_LEVEL_UP;
+    
+    // Draw progress bar background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.fillRect(canvas.width - 100, 33, progressBarWidth, 10);
+    
+    // Draw progress bar fill
+    ctx.fillStyle = '#4CAF50'; // Green progress
+    ctx.fillRect(canvas.width - 100, 33, progressBarWidth * progress, 10);
     
     // Draw current combo if active
     if (gameState.combo > 1) {
@@ -1115,4 +1205,221 @@ function enableAudio() {
                 .catch(err => console.log("Couldn't unlock audio:", err));
         }
     });
+}
+
+// Function to spawn power-ups randomly
+function spawnPowerUp() {
+    // Random chance to spawn a power-up
+    if (Math.random() < POWERUP_SPAWN_CHANCE) {
+        // Choose a random position that's not on a hedge
+        let x, y;
+        let validPosition = false;
+        let attempts = 0;
+        
+        while (!validPosition && attempts < 20) {
+            x = 50 + Math.random() * (canvas.width - 100);
+            y = 50 + Math.random() * (canvas.height - 100);
+            
+            // Check if position overlaps with any hedge
+            validPosition = true;
+            for (const hedge of gameState.hedges) {
+                if (x < hedge.x + hedge.width + POWERUP_SIZE &&
+                    x + POWERUP_SIZE > hedge.x &&
+                    y < hedge.y + hedge.height + POWERUP_SIZE &&
+                    y + POWERUP_SIZE > hedge.y) {
+                    validPosition = false;
+                    break;
+                }
+            }
+            attempts++;
+        }
+        
+        if (validPosition) {
+            // Choose a power-up type based on weighted chance
+            const totalWeight = POWERUP_TYPES.reduce((sum, type) => sum + type.chance, 0);
+            let random = Math.random() * totalWeight;
+            let selectedType;
+            
+            for (const type of POWERUP_TYPES) {
+                random -= type.chance;
+                if (random <= 0) {
+                    selectedType = type;
+                    break;
+                }
+            }
+            
+            // Add new power-up to the game
+            gameState.powerUps.push({
+                x,
+                y,
+                type: selectedType.name,
+                color: selectedType.color,
+                duration: selectedType.duration,
+                expiryTime: null, // Will be set when collected
+                active: false,
+                width: POWERUP_SIZE,
+                height: POWERUP_SIZE
+            });
+        }
+    }
+}
+
+// Function to draw power-ups
+function drawPowerUps() {
+    gameState.powerUps.forEach(powerUp => {
+        // Only draw uncollected power-ups
+        if (!powerUp.active) {
+            ctx.fillStyle = powerUp.color;
+            ctx.beginPath();
+            ctx.arc(powerUp.x + POWERUP_SIZE/2, powerUp.y + POWERUP_SIZE/2, POWERUP_SIZE/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Add pulsing effect
+            const pulseSize = Math.sin(Date.now() / 200) * 3;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(powerUp.x + POWERUP_SIZE/2, powerUp.y + POWERUP_SIZE/2, POWERUP_SIZE/2 + pulseSize, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Draw power-up icon/letter
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Show first letter of power-up type
+            let icon = powerUp.type.charAt(0).toUpperCase();
+            ctx.fillText(icon, powerUp.x + POWERUP_SIZE/2, powerUp.y + POWERUP_SIZE/2);
+        }
+    });
+    
+    // Draw active power-up indicators
+    const activePowerUps = gameState.powerUps.filter(p => p.active);
+    if (activePowerUps.length > 0) {
+        // Draw background for power-up indicators
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(10, 60, 100, 30 * activePowerUps.length);
+        
+        // Draw each active power-up
+        activePowerUps.forEach((powerUp, index) => {
+            const timeLeft = Math.max(0, (powerUp.expiryTime - Date.now()) / 1000).toFixed(1);
+            const y = 80 + index * 30;
+            
+            // Power-up circle
+            ctx.fillStyle = powerUp.color;
+            ctx.beginPath();
+            ctx.arc(25, y, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Power-up text
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${powerUp.type}: ${timeLeft}s`, 40, y);
+        });
+    }
+}
+
+// Function to check collisions with power-ups
+function checkPowerUpCollisions() {
+    gameState.powerUps = gameState.powerUps.filter(powerUp => {
+        // Skip active power-ups
+        if (powerUp.active) {
+            // Check if power-up has expired
+            if (Date.now() > powerUp.expiryTime) {
+                // Remove expired power-up and restore normal state
+                deactivatePowerUp(powerUp);
+                return false;
+            }
+            return true;
+        }
+        
+        // Check if player collided with this power-up
+        if (gameState.player.x < powerUp.x + powerUp.width &&
+            gameState.player.x + WOLF_SIZE > powerUp.x &&
+            gameState.player.y < powerUp.y + powerUp.height &&
+            gameState.player.y + WOLF_SIZE > powerUp.y) {
+            
+            // Power-up collected!
+            activatePowerUp(powerUp);
+            
+            // Create particles for visual effect
+            for (let i = 0; i < 15; i++) {
+                gameState.particles.push(
+                    createParticle(powerUp.x + POWERUP_SIZE/2, powerUp.y + POWERUP_SIZE/2, powerUp.color)
+                );
+            }
+            
+            // Create text effect
+            gameState.scoreEffects.push(
+                createScoreEffect(powerUp.x + POWERUP_SIZE/2, powerUp.y + POWERUP_SIZE/2, powerUp.type)
+            );
+            
+            return true; // Keep in array but mark as active
+        }
+        
+        return true; // Keep uncollected power-up in array
+    });
+}
+
+// Function to activate a power-up
+function activatePowerUp(powerUp) {
+    powerUp.active = true;
+    powerUp.expiryTime = Date.now() + powerUp.duration;
+    
+    // Apply power-up effect based on type
+    switch(powerUp.type) {
+        case 'speed':
+            // Double player speed
+            gameState.player.speed *= 2;
+            break;
+        case 'shield':
+            // Shield is checked when handling poop collisions
+            break;
+        case 'magnet':
+            // Magnet effect is applied during sheep movement
+            break;
+    }
+    
+    // Create a text notification
+    ctx.font = 'bold 24px Arial';
+    const textWidth = ctx.measureText(`${powerUp.type} activated!`).width;
+    
+    gameState.scoreEffects.push({
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        text: `${powerUp.type} activated!`,
+        life: 60, // Show longer
+        alpha: 1,
+        color: powerUp.color
+    });
+}
+
+// Function to deactivate a power-up
+function deactivatePowerUp(powerUp) {
+    // Restore normal state based on power-up type
+    switch(powerUp.type) {
+        case 'speed':
+            // Restore original speed
+            gameState.player.speed = 5;
+            break;
+        case 'shield':
+            // Shield effect ends automatically
+            break;
+        case 'magnet':
+            // Magnet effect ends automatically
+            break;
+    }
+}
+
+// Check if player has shield power-up active
+function hasShield() {
+    return gameState.powerUps.some(p => p.active && p.type === 'shield');
+}
+
+// Check if player has magnet power-up active
+function hasMagnet() {
+    return gameState.powerUps.some(p => p.active && p.type === 'magnet');
 }
