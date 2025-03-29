@@ -4,8 +4,11 @@ const ctx = canvas.getContext('2d');
 const WOLF_SIZE = 40;
 const SHEEP_SIZE = 40;
 const POOP_SIZE = 30;
+const MAX_ROUNDS = 5; // Maximum rounds in the game
+const SHEEP_TO_LEVEL_UP = 10; // Number of sheep to catch to reach next level
 let startTime;
 let timeInterval;
+let sheepCaught = 0; // Track number of sheep caught in current round
 
 // Set canvas size
 canvas.width = 800;
@@ -78,6 +81,30 @@ const gameState = {
         height: POOP_SIZE,
         speed: 4,
         moveUp: false
+    },
+    poop3: {
+        x: canvas.width,
+        y: canvas.height / 2,
+        width: POOP_SIZE,
+        height: POOP_SIZE,
+        speed: 5,
+        moveLeft: true
+    },
+    poop4: {
+        x: canvas.width / 2,
+        y: 0,
+        width: POOP_SIZE,
+        height: POOP_SIZE,
+        speed: 6,
+        moveRight: true
+    },
+    poop5: {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        width: POOP_SIZE,
+        height: POOP_SIZE,
+        speed: 7,
+        direction: Math.random() * Math.PI * 2
     },
     score: 0,
     highScore: localStorage.getItem('highScore') ? parseInt(localStorage.getItem('highScore')) : 0,
@@ -159,6 +186,7 @@ function startGame() {
     gameState.gameTimer = 120;
     gameState.combo = 0;
     gameState.isTransitioning = false;
+    sheepCaught = 0; // Reset sheep caught counter
     
     // Update score display
     document.getElementById('score').textContent = 'Score: 0';
@@ -176,6 +204,18 @@ function startGame() {
     gameState.poop2.x = 0;
     gameState.poop2.y = canvas.height;
     gameState.poop2.moveUp = true;
+    
+    gameState.poop3.x = canvas.width;
+    gameState.poop3.y = canvas.height / 2;
+    gameState.poop3.moveLeft = true;
+    
+    gameState.poop4.x = canvas.width / 2;
+    gameState.poop4.y = 0;
+    gameState.poop4.moveRight = true;
+    
+    gameState.poop5.x = canvas.width / 2;
+    gameState.poop5.y = canvas.height / 2;
+    gameState.poop5.direction = Math.random() * Math.PI * 2;
     
     // Reset game elements
     gameState.hedges = [];
@@ -458,6 +498,33 @@ function drawPoops() {
             ctx.fillRect(gameState.poop2.x, gameState.poop2.y, POOP_SIZE, POOP_SIZE);
         }
     }
+    
+    if (gameState.level >= 3) { // Third poop from level 3
+        if (poopImage.complete && poopImage.naturalWidth !== 0) {
+            ctx.drawImage(poopImage, gameState.poop3.x, gameState.poop3.y, POOP_SIZE, POOP_SIZE);
+        } else {
+            ctx.fillStyle = '#663300'; // Brown
+            ctx.fillRect(gameState.poop3.x, gameState.poop3.y, POOP_SIZE, POOP_SIZE);
+        }
+    }
+    
+    if (gameState.level >= 4) { // Fourth poop from level 4
+        if (poopImage.complete && poopImage.naturalWidth !== 0) {
+            ctx.drawImage(poopImage, gameState.poop4.x, gameState.poop4.y, POOP_SIZE, POOP_SIZE);
+        } else {
+            ctx.fillStyle = '#663300'; // Brown
+            ctx.fillRect(gameState.poop4.x, gameState.poop4.y, POOP_SIZE, POOP_SIZE);
+        }
+    }
+    
+    if (gameState.level >= 5) { // Fifth poop from level 5
+        if (poopImage.complete && poopImage.naturalWidth !== 0) {
+            ctx.drawImage(poopImage, gameState.poop5.x, gameState.poop5.y, POOP_SIZE, POOP_SIZE);
+        } else {
+            ctx.fillStyle = '#663300'; // Brown
+            ctx.fillRect(gameState.poop5.x, gameState.poop5.y, POOP_SIZE, POOP_SIZE);
+        }
+    }
 }
 
 // Update poops
@@ -501,6 +568,78 @@ function updatePoops() {
         
         // Check collision with player
         if (checkCollisionWithPoop(gameState.player, gameState.poop2)) {
+            // End game when poop hits wolf
+            endGame("POOPED!!!");
+        }
+    }
+    
+    // Update third poop in level 3
+    if (gameState.level >= 3) {
+        if (gameState.poop3.moveLeft) {
+            gameState.poop3.x -= gameState.poop3.speed;
+            if (gameState.poop3.x < 0) {
+                gameState.poop3.moveLeft = false;
+            }
+        } else {
+            gameState.poop3.x += gameState.poop3.speed;
+            if (gameState.poop3.x > canvas.width) {
+                gameState.poop3.x = canvas.width;
+                gameState.poop3.moveLeft = true;
+            }
+        }
+        
+        // Check collision with player
+        if (checkCollisionWithPoop(gameState.player, gameState.poop3)) {
+            // End game when poop hits wolf
+            endGame("POOPED!!!");
+        }
+    }
+    
+    // Update fourth poop in level 4
+    if (gameState.level >= 4) {
+        if (gameState.poop4.moveRight) {
+            gameState.poop4.x += gameState.poop4.speed;
+            if (gameState.poop4.x > canvas.width) {
+                gameState.poop4.moveRight = false;
+            }
+        } else {
+            gameState.poop4.x -= gameState.poop4.speed;
+            if (gameState.poop4.x < 0) {
+                gameState.poop4.moveRight = true;
+            }
+        }
+        
+        // Check collision with player
+        if (checkCollisionWithPoop(gameState.player, gameState.poop4)) {
+            // End game when poop hits wolf
+            endGame("POOPED!!!");
+        }
+    }
+    
+    // Update fifth poop in level 5
+    if (gameState.level >= 5) {
+        gameState.poop5.x += Math.cos(gameState.poop5.direction) * gameState.poop5.speed;
+        gameState.poop5.y += Math.sin(gameState.poop5.direction) * gameState.poop5.speed;
+        
+        // Bounce off edges
+        if (gameState.poop5.x < -POOP_SIZE / 2) {
+            gameState.poop5.x = -POOP_SIZE / 2;
+            gameState.poop5.direction = Math.PI - gameState.poop5.direction;
+        } else if (gameState.poop5.x > canvas.width - POOP_SIZE / 2) {
+            gameState.poop5.x = canvas.width - POOP_SIZE / 2;
+            gameState.poop5.direction = Math.PI - gameState.poop5.direction;
+        }
+        
+        if (gameState.poop5.y < -POOP_SIZE / 2) {
+            gameState.poop5.y = -POOP_SIZE / 2;
+            gameState.poop5.direction = -gameState.poop5.direction;
+        } else if (gameState.poop5.y > canvas.height - POOP_SIZE / 2) {
+            gameState.poop5.y = canvas.height - POOP_SIZE / 2;
+            gameState.poop5.direction = -gameState.poop5.direction;
+        }
+        
+        // Check collision with player
+        if (checkCollisionWithPoop(gameState.player, gameState.poop5)) {
             // End game when poop hits wolf
             endGame("POOPED!!!");
         }
@@ -586,6 +725,9 @@ function gameLoop() {
             const scoreIncrease = Math.min(gameState.combo, 4);  // Cap combo at 4x
             gameState.score += scoreIncrease;
             
+            // Increment sheep count and check for level transition
+            sheepCaught++;
+            
             // Add bonus time
             gameState.gameTimer = Math.min(120, gameState.gameTimer + scoreIncrease);
             
@@ -615,8 +757,8 @@ function gameLoop() {
                 document.getElementById('high-score').textContent = `High Score: ${gameState.highScore}`;
             }
             
-            // Level up at score 5
-            if (gameState.score >= 5 && gameState.level === 1) {
+            // Check if we've caught enough sheep to level up
+            if (sheepCaught >= SHEEP_TO_LEVEL_UP && gameState.level < MAX_ROUNDS) {
                 showLevelTransition();
                 return false;
             }
@@ -819,52 +961,76 @@ function drawScoreEffects() {
     ctx.globalAlpha = 1; // Reset alpha
 }
 
-// Function to release wolf (make sure it plays the sound)
-function releaseWolf() {
-    console.log("Releasing wolf, playing sound");
-    // Play wolf sound
-    playSound(wolfSound);
-}
-
-// Add wolf release when starting level 2
+// Function to release wolf and trigger round transition
 function showLevelTransition() {
     console.log('Starting level transition');
     gameState.isTransitioning = true;
     
-    // Clear the screen
+    // Clear the screen for the transition
     drawBackground();
     
-    // Display transition message
+    // Display transition message with the correct round number
     ctx.fillStyle = 'white';
     ctx.font = 'bold 72px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('ROUND 2!', canvas.width/2, canvas.height/2);
+    ctx.fillText(`ROUND ${gameState.level + 1}!`, canvas.width/2, canvas.height/2);
     
-    // Play wolf sound during transition to level 2
+    // Add info about the additional poop
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText(`Watch out! Another poop has appeared!`, canvas.width/2, canvas.height/2 + 60);
+    
+    // Play wolf sound during transition to next level
     playSound(wolfSound);
     
     // Wait for a moment before continuing
     setTimeout(() => {
-        console.log('Transition timeout completed, starting level 2');
+        console.log(`Transition timeout completed, starting level ${gameState.level + 1}`);
         
         // Move to next level
         gameState.level++;
         
-        // Reset positions
+        // Reset sheep caught counter for the new round
+        sheepCaught = 0;
+        
+        // Reset player position
         gameState.player.x = canvas.width / 2 - WOLF_SIZE / 2;
         gameState.player.y = canvas.height / 2 - WOLF_SIZE / 2;
         
-        // Reset poops
+        // Reset and position poop obstacles based on the current level
+        // First poop (all levels)
         gameState.poop.x = 0;
         gameState.poop.y = 0;
         gameState.poop.moveDown = false;
         
-        // Enable second poop obstacle in level 2
-        gameState.poop2.x = 0;
-        gameState.poop2.y = canvas.height;
-        gameState.poop2.moveUp = true;
+        // Second poop (level 2 and above)
+        if (gameState.level >= 2) {
+            gameState.poop2.x = 0;
+            gameState.poop2.y = canvas.height;
+            gameState.poop2.moveUp = true;
+        }
         
-        // Spawn new hedges and sheep
+        // Third poop (level 3 and above)
+        if (gameState.level >= 3) {
+            gameState.poop3.x = canvas.width;
+            gameState.poop3.y = canvas.height / 2;
+            gameState.poop3.moveLeft = true;
+        }
+        
+        // Fourth poop (level 4 and above)
+        if (gameState.level >= 4) {
+            gameState.poop4.x = canvas.width / 2;
+            gameState.poop4.y = 0;
+            gameState.poop4.moveRight = true;
+        }
+        
+        // Fifth poop (level 5)
+        if (gameState.level >= 5) {
+            gameState.poop5.x = canvas.width / 2;
+            gameState.poop5.y = canvas.height / 2;
+            gameState.poop5.direction = Math.random() * Math.PI * 2;
+        }
+        
+        // Spawn new hedges and sheep for the new round
         spawnHedges();
         spawnSheepWave();
         
