@@ -287,10 +287,6 @@ function startGame() {
     document.getElementById('score').textContent = 'Score: 0';
     document.getElementById('high-score').textContent = `High Score: ${gameState.highScore}`;
     
-    // Reset positions
-    gameState.player.x = canvas.width / 2 - WOLF_SIZE / 2;
-    gameState.player.y = canvas.height / 2 - WOLF_SIZE / 2;
-    
     // Reset poops
     gameState.poop.x = 0;
     gameState.poop.y = 0;
@@ -320,6 +316,13 @@ function startGame() {
     
     console.log('Generating game elements');
     spawnHedges();
+    
+    // Use findSafeSpawnPosition to place the wolf in a safe location
+    // This must be done after spawning hedges
+    const safePosition = findSafeSpawnPosition();
+    gameState.player.x = safePosition.x;
+    gameState.player.y = safePosition.y;
+    
     spawnSheepWave();
     
     // Play wolf sound when game starts
@@ -628,7 +631,7 @@ function updatePoops() {
         // Check collision with player
         if (checkCollisionWithPoop(gameState.player, gameState.poop)) {
             // End game when poop hits wolf
-            endGame("POOPED!!!");
+            endGame("You Look Pooped!!");
         }
     }
     
@@ -650,7 +653,7 @@ function updatePoops() {
         // Check collision with player
         if (checkCollisionWithPoop(gameState.player, gameState.poop2)) {
             // End game when poop hits wolf
-            endGame("POOPED!!!");
+            endGame("You Look Pooped!!");
         }
     }
     
@@ -672,7 +675,7 @@ function updatePoops() {
         // Check collision with player
         if (checkCollisionWithPoop(gameState.player, gameState.poop3)) {
             // End game when poop hits wolf
-            endGame("POOPED!!!");
+            endGame("You Look Pooped!!");
         }
     }
     
@@ -693,7 +696,7 @@ function updatePoops() {
         // Check collision with player
         if (checkCollisionWithPoop(gameState.player, gameState.poop4)) {
             // End game when poop hits wolf
-            endGame("POOPED!!!");
+            endGame("You Look Pooped!!");
         }
     }
     
@@ -722,7 +725,7 @@ function updatePoops() {
         // Check collision with player
         if (checkCollisionWithPoop(gameState.player, gameState.poop5)) {
             // End game when poop hits wolf
-            endGame("POOPED!!!");
+            endGame("You Look Pooped!!");
         }
     }
 }
@@ -1173,10 +1176,6 @@ function showLevelTransition() {
         // Reset sheep caught counter for the new round
         sheepCaught = 0;
         
-        // Reset player position
-        gameState.player.x = canvas.width / 2 - WOLF_SIZE / 2;
-        gameState.player.y = canvas.height / 2 - WOLF_SIZE / 2;
-        
         // Reset and position poop obstacles based on the current level
         // First poop (all levels)
         gameState.poop.x = 0;
@@ -1213,6 +1212,12 @@ function showLevelTransition() {
         
         // Spawn new hedges and sheep for the new round
         spawnHedges();
+        
+        // Find a safe position for the wolf and place it there
+        const safePosition = findSafeSpawnPosition();
+        gameState.player.x = safePosition.x;
+        gameState.player.y = safePosition.y;
+        
         spawnSheepWave();
         
         // Continue game
