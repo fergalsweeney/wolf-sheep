@@ -14,7 +14,7 @@ let sheepCaught = 0; // Track number of sheep caught in current round
 const POWERUP_SIZE = 30;
 const POWERUP_TYPES = [
     { name: 'speed', color: '#3498db', duration: 10000, chance: 0.6 },
-    { name: 'shield', color: '#e74c3c', duration: 8000, chance: 0.3 },
+    { name: 'Poop Shield', color: '#e74c3c', duration: 8000, chance: 0.3 },
     { name: 'magnet', color: '#9b59b6', duration: 5000, chance: 0.1 }
 ];
 const POWERUP_SPAWN_CHANCE = 0.002; // Chance to spawn a power-up each frame
