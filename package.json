@@ -1,0 +1,15 @@
+{
+  "name": "sheep-game",
+  "version": "1.0.0",
+  "description": "A fun game featuring sheep as the main theme.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "open index.html",
+    "build": "echo 'Build script not defined'",
+    "test": "echo 'No tests defined'"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "author": "Your Name",
+  "license": "MIT"
+}
