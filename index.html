@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sheep Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1 id="game-title">Sheep Herder</h1>
+        <canvas id="gameCanvas"></canvas>
+        <div id="score-container">
+            <div id="score" class="score-display">Score: 0</div>
+            <div id="high-score" class="score-display">High Score: 0</div>
+        </div>
+        <button id="startButton" class="top-right-button">Start</button>
+        <!-- Audio elements added inline for better browser compatibility -->
+        <audio id="backgroundMusic" preload="auto" loop></audio>
+        <audio id="biteSound" src="./assets/bite.ogg" preload="auto"></audio>
+        <audio id="wolfSound" src="./assets/wolfisloose.ogg" preload="auto"></audio>
+        <div id="instructions" class="instructions-panel">
+            <h3>How to Play</h3>
+            <p>Use your mouse or touch to herd the sheep.</p>
+            <p>Earn points for each sheep that reaches the pen.</p>
+            <p>Don't let the timer run out!</p>
+            <button id="closeInstructions">Got it!</button>
+        </div>
+    </div>
+    <script src="src/main.js"></script>
+</body>
+</html>

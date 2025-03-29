@@ -1,0 +1,8 @@
+const SCREEN_WIDTH = 800;
+const SCREEN_HEIGHT = 600;
+
+const GAME_TITLE = "Sheep Adventure";
+const MAX_SHEEP = 20;
+const PLAYER_SPEED = 5;
+
+export { SCREEN_WIDTH, SCREEN_HEIGHT, GAME_TITLE, MAX_SHEEP, PLAYER_SPEED };
